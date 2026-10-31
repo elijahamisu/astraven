@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import './toast.js';
 
 // In-tab auth lock. The default browser (navigator.locks) lock can hang forever
 // on some Android browsers right after sign-up / sign-in, which froze pages.

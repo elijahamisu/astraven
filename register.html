@@ -116,7 +116,7 @@
 
     function showError(msg) {
       alertBanner.textContent = msg;
-      alertBanner.className = 'alert-banner error';
+      alertBanner.className = 'alert-banner error'; alertBanner.style.display = '';
       alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
@@ -134,28 +134,28 @@
 
       if (!isValidEmail(email)) {
         alertBanner.textContent = 'Please provide a valid email address.';
-        alertBanner.className = 'alert-banner error';
+        alertBanner.className = 'alert-banner error'; alertBanner.style.display = '';
         alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
       if (!isValidNigerianPhone(phone)) {
         alertBanner.textContent = 'Please enter a valid Nigerian phone number (e.g. 08012345678).';
-        alertBanner.className = 'alert-banner error';
+        alertBanner.className = 'alert-banner error'; alertBanner.style.display = '';
         alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
       if (password.length < 8) {
         alertBanner.textContent = 'Password must be at least 8 characters long.';
-        alertBanner.className = 'alert-banner error';
+        alertBanner.className = 'alert-banner error'; alertBanner.style.display = '';
         alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
       if (password !== confirmPassword) {
         alertBanner.textContent = 'Passwords do not match.';
-        alertBanner.className = 'alert-banner error';
+        alertBanner.className = 'alert-banner error'; alertBanner.style.display = '';
         alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
@@ -203,7 +203,7 @@
           window.location.href = 'dashboard.html';
         } else {
           alertBanner.textContent = 'Registration completed! Please check your email inbox to verify your account before logging in.';
-          alertBanner.className = 'alert-banner success';
+          alertBanner.className = 'alert-banner success'; alertBanner.style.display = '';
           form.reset();
           submitBtn.disabled = false;
           submitBtn.textContent = 'Create Account';
@@ -213,7 +213,7 @@
         submitBtn.disabled = false;
         submitBtn.textContent = 'Create Account';
         alertBanner.textContent = 'Registration service error. Please try again.';
-        alertBanner.className = 'alert-banner error';
+        alertBanner.className = 'alert-banner error'; alertBanner.style.display = '';
       }
     });
   </script>
