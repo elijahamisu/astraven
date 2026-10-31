@@ -114,6 +114,12 @@
     const refParam = urlParams.get('ref');
     if (refParam) refInput.value = refParam.trim().toUpperCase();
 
+    function showError(msg) {
+      alertBanner.textContent = msg;
+      alertBanner.className = 'alert-banner error';
+      alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       alertBanner.style.display = 'none';
@@ -129,29 +135,44 @@
       if (!isValidEmail(email)) {
         alertBanner.textContent = 'Please provide a valid email address.';
         alertBanner.className = 'alert-banner error';
+        alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
       if (!isValidNigerianPhone(phone)) {
         alertBanner.textContent = 'Please enter a valid Nigerian phone number (e.g. 08012345678).';
         alertBanner.className = 'alert-banner error';
+        alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
       if (password.length < 8) {
         alertBanner.textContent = 'Password must be at least 8 characters long.';
         alertBanner.className = 'alert-banner error';
+        alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
       if (password !== confirmPassword) {
         alertBanner.textContent = 'Passwords do not match.';
         alertBanner.className = 'alert-banner error';
+        alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
+      }
+
+      if (username.length < 3) {
+        return showError('Username must be at least 3 letters or numbers.');
       }
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Registering...';
+
+      const { data: available } = await supabase.rpc('username_available', { p_username: username });
+      if (available === false) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
+        return showError(`The username "${username}" is already taken. Please choose another one.`);
+      }
 
       try {
         const { data, error } = await supabase.auth.signUp({
@@ -170,9 +191,12 @@
         if (error) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Create Account';
-          alertBanner.textContent = error.message;
-          alertBanner.className = 'alert-banner error';
-          return;
+          const msg = /already registered|already exists/i.test(error.message)
+            ? 'An account with this email already exists. Please sign in instead.'
+            : /database error/i.test(error.message)
+              ? 'That username or referral code could not be used. Please try a different username.'
+              : error.message;
+          return showError(msg);
         }
 
         if (data.session) {
