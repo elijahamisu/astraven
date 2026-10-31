@@ -267,6 +267,7 @@
               <th style="padding: 12px;">Total Payout</th>
               <th style="padding: 12px;">Maturity Date</th>
               <th style="padding: 12px;">Status</th>
+              <th style="padding: 12px;">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -281,12 +282,28 @@
                 <td style="padding: 12px; font-weight: 700;">${formatCurrency(i.total_payout)}</td>
                 <td style="padding: 12px; color: var(--secondary-text); font-size: 0.75rem;">${formatDate(i.maturity_date, { includeTime: false })}</td>
                 <td style="padding: 12px;"><span class="badge-status ${i.status === 'active' ? 'badge-completed' : 'badge-pending'}">${i.status}</span></td>
+                <td style="padding: 12px;"><button type="button" class="del-inv-btn" data-id="${i.id}" data-name="${String(i.product_name || '').replace(/"/g, '&quot;')}" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--error-red); background: #FDE8E8; color: var(--error-red); font-weight: 700; font-size: 0.75rem; cursor: pointer;">Delete</button></td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       `;
     }
+
+    document.getElementById('userInvestmentsContainer').addEventListener('click', async (e) => {
+      const btn = e.target.closest('.del-inv-btn');
+      if (!btn) return;
+      const name = btn.dataset.name || 'this package';
+      if (!confirm(`Delete "${name}" from this user? It stops all future income from it. Income already paid stays in their wallet.`)) return;
+      btn.disabled = true; btn.textContent = 'Deleting...';
+      const { data, error } = await supabase.rpc('admin_delete_investment', { p_investment_id: btn.dataset.id });
+      if (error || !data?.success) {
+        btn.disabled = false; btn.textContent = 'Delete';
+        return window.showToast ? window.showToast(data?.message || error?.message || 'Could not delete package.', 'error') : alert('Could not delete package.');
+      }
+      window.showToast?.(`"${name}" deleted.`, 'success');
+      loadUserInvestments();
+    });
 
     async function loadProductsDropdown() {
       const select = document.getElementById('productSelect');
