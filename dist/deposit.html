@@ -41,8 +41,16 @@
     }
     .alert-banner.error { background: #FDE8E8; border: 1px solid var(--error-red); color: var(--error-red); display: block; }
     .alert-banner.success { background: #E6F8EF; border: 1px solid var(--success-green); color: var(--success-green); display: block; }
+      .channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .channel-btn { width: 100%; padding: 14px 10px; border-radius: 14px; border: 2px solid #E5E7EB; background: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all .15s; }
+    .channel-btn .ch-title { font-weight: 800; font-size: 1rem; color: var(--deep-forest); }
+    .channel-btn .ch-sub { font-size: 0.75rem; color: var(--secondary-text); }
+    .channel-btn.selected { border-color: var(--primary-green); background: #ECFDF3; box-shadow: 0 0 0 3px rgba(16,122,72,.15); }
+    .channel-btn.selected .ch-title::before { content: '✓ '; color: var(--primary-green); }
+    .channel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .ch-note { font-size: 0.72rem; color: var(--error-red); margin-top: 6px; line-height: 1.35; text-align: center; font-weight: 600; }
   </style>
-  <script type="module" crossorigin src="/assets/deposit-BairwJPP.js"></script>
+  <script type="module" crossorigin src="/assets/deposit-Cjn_yQEY.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/supabase-client-C6YDjNCm.js">
   <link rel="modulepreload" crossorigin href="/assets/site-settings-DR2l5HIv.js">
   <link rel="modulepreload" crossorigin href="/assets/mobile-cards-DX-1T3ZF.js">
@@ -61,18 +69,6 @@
           Pay securely through our licensed Nigerian payment gateway. Your wallet is credited automatically once payment is confirmed.
         </p>
 
-        <div id="gatewaySection">
-        <div class="bank-card">
-          <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--soft-gold); letter-spacing: 0.08em; margin-bottom: 8px;">
-            SECURE GATEWAY DEPOSIT
-          </div>
-          <div class="bank-row"><span style="color: #D1D5DB;">Method:</span><strong style="color: var(--white);">Bank transfer via secure checkout</strong></div>
-          <div class="bank-row"><span style="color: #D1D5DB;">Crediting:</span><strong style="color: var(--white);">Automatic on confirmation</strong></div>
-          <div style="margin-top: 10px; font-size: 0.8rem; color: #CBD5E1; line-height: 1.4;">
-            You'll be taken to the payment page with a one-time account to transfer the exact amount to. Don't close it until the transfer is complete.
-          </div>
-        </div>
-
         <div id="alertBanner" class="alert-banner"></div>
 
         <form class="astra-card" id="depositForm">
@@ -82,11 +78,28 @@
             <small id="minDepositNotice" style="color: var(--secondary-text); font-size: 0.78rem;">Minimum deposit applies.</small>
           </div>
 
-          <button type="submit" id="submitBtn" class="btn-gold" style="width: 100%; padding: 14px; margin-top: 8px;">
-            Proceed to Secure Payment
+          <div style="font-size: 0.85rem; font-weight: 800; letter-spacing: 0.06em; color: var(--deep-forest); margin: 18px 0 10px;">CHANNELS FOR DEPOSIT</div>
+          <div class="channel-grid">
+            <div>
+              <button type="button" class="channel-btn" data-channel="auto" id="chAutoBtn">
+                <span class="ch-title">Channel-1</span>
+                <span class="ch-sub">Automatic deposit</span>
+              </button>
+              <div class="ch-note">Note: Opay and palmpay deposit is not allowed</div>
+            </div>
+            <div>
+              <button type="button" class="channel-btn" data-channel="manual" id="chManualBtn">
+                <span class="ch-title">Channel-2</span>
+                <span class="ch-sub">Manual deposit</span>
+              </button>
+              <div class="ch-note">Note: All bank deposits are allowed</div>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn" class="btn-gold" style="width: 100%; padding: 14px; margin-top: 16px;">
+            Pick a Channel to Continue
           </button>
         </form>
-        </div>
 
         <div id="manualSection" style="display: none; margin-top: 20px;">
           <div class="bank-card" style="margin-bottom: 14px;">
@@ -98,7 +111,7 @@
             <div style="margin-top: 8px; font-size: 0.8rem; color: #CBD5E1;">Transfer, then upload your receipt below. Your wallet is credited once an admin confirms it.</div>
           </div>
           <form class="astra-card" id="manualForm">
-            <div class="form-group"><label for="manAmount">Amount sent (₦)</label><input type="number" id="manAmount" class="form-control" min="1" step="0.01" required></div>
+            <div style="font-size: 0.85rem; margin-bottom: 12px;">Amount to send: <strong id="manAmountTxt" style="color: var(--primary-green);"></strong> <a href="#" id="changeAmtLink" style="font-size: 0.78rem; margin-left: 6px;">Change</a></div>
             <div class="form-group"><label for="manSender">Sender account name</label><input id="manSender" class="form-control" maxlength="120" required></div>
             <div class="form-group"><label for="manRef">Transfer reference (optional)</label><input id="manRef" class="form-control" maxlength="100"></div>
             <div class="form-group"><label for="manReceipt">Payment receipt</label><input type="file" id="manReceipt" class="form-control" accept="image/*,application/pdf" required></div>
