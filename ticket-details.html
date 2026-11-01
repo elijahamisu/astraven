@@ -124,10 +124,6 @@
       targetTicketId = urlParams.get('id');
 
       if (!targetTicketId) {
-        const ended = ['closed', 'resolved'].includes(ticket.status);
-      document.getElementById('replyForm').style.display = ended ? 'none' : '';
-      document.getElementById('endedBar').style.display = ended ? 'block' : 'none';
-
       document.getElementById('ticketSummary').innerHTML = `<p style="color: var(--error-red);">No ticket specified.</p>`;
         return;
       }
@@ -142,6 +138,10 @@
         document.getElementById('ticketSummary').innerHTML = `<p style="color: var(--error-red);">Ticket not found or unauthorized.</p>`;
         return;
       }
+
+      const ended = ['closed', 'resolved'].includes(ticket.status);
+      document.getElementById('replyForm').style.display = ended ? 'none' : '';
+      document.getElementById('endedBar').style.display = ended ? 'block' : 'none';
 
       document.getElementById('ticketSummary').innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
