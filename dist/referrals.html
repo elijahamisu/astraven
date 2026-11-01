@@ -50,12 +50,11 @@
     }
     .tx-table th { background: #FAFAFA; color: var(--secondary-text); font-size: 0.72rem; text-transform: uppercase; }
   </style>
-  <script type="module" crossorigin src="/assets/referrals-o-aix67I.js"></script>
+  <script type="module" crossorigin src="/assets/referrals-DkMJQ2WZ.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/supabase-client-C6YDjNCm.js">
   <link rel="modulepreload" crossorigin href="/assets/site-settings-DR2l5HIv.js">
   <link rel="modulepreload" crossorigin href="/assets/mobile-cards-DX-1T3ZF.js">
   <link rel="modulepreload" crossorigin href="/assets/user-navigation-CPu4N22w.js">
-  <link rel="modulepreload" crossorigin href="/assets/usernames-B0YvbBDb.js">
   <link rel="modulepreload" crossorigin href="/assets/formatters-kkpPVsns.js">
   <link rel="stylesheet" crossorigin href="/assets/supabase-client-EgumnwMA.css">
 </head>
@@ -97,7 +96,7 @@
       <!-- Affiliate Performance Cards -->
       <div class="ref-stats-grid">
         <div class="astra-card-secondary">
-          <div class="secondary-stat-label">Total Referrals</div>
+          <div class="secondary-stat-label">Direct Referrals</div>
           <div class="secondary-stat-value" id="statTotalRef">0</div>
         </div>
         <div class="astra-card-secondary">
@@ -114,9 +113,30 @@
         </div>
       </div>
 
+      <!-- Team by level -->
+      <div class="ref-stats-grid">
+        <div class="astra-card-secondary">
+          <div class="secondary-stat-label">LV 1 Downlines</div>
+          <div class="secondary-stat-value" id="statLv1">0</div>
+        </div>
+        <div class="astra-card-secondary">
+          <div class="secondary-stat-label">LV 2 Downlines</div>
+          <div class="secondary-stat-value" id="statLv2">0</div>
+        </div>
+        <div class="astra-card-secondary">
+          <div class="secondary-stat-label">LV 3 Downlines</div>
+          <div class="secondary-stat-value" id="statLv3">0</div>
+        </div>
+        <div class="astra-card-secondary">
+          <div class="secondary-stat-label">Total Downlines</div>
+          <div class="secondary-stat-value" id="statLvTotal" style="color: var(--primary-green);">0</div>
+        </div>
+      </div>
+
       <!-- Downlines List -->
       <div class="astra-card">
         <h2 style="font-size: 1.15rem; color: var(--deep-forest); margin-bottom: 14px;">Referred Team Members</h2>
+        <div id="levelTabs" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;"></div>
         <div class="table-responsive" id="teamContainer">
           <p style="text-align: center; color: var(--secondary-text); padding: 30px;">Loading your affiliate network...</p>
         </div>

@@ -90,7 +90,7 @@
       <!-- Affiliate Performance Cards -->
       <div class="ref-stats-grid">
         <div class="astra-card-secondary">
-          <div class="secondary-stat-label">Total Referrals</div>
+          <div class="secondary-stat-label">Direct Referrals</div>
           <div class="secondary-stat-value" id="statTotalRef">0</div>
         </div>
         <div class="astra-card-secondary">
@@ -107,9 +107,30 @@
         </div>
       </div>
 
+      <!-- Team by level -->
+      <div class="ref-stats-grid">
+        <div class="astra-card-secondary">
+          <div class="secondary-stat-label">LV 1 Downlines</div>
+          <div class="secondary-stat-value" id="statLv1">0</div>
+        </div>
+        <div class="astra-card-secondary">
+          <div class="secondary-stat-label">LV 2 Downlines</div>
+          <div class="secondary-stat-value" id="statLv2">0</div>
+        </div>
+        <div class="astra-card-secondary">
+          <div class="secondary-stat-label">LV 3 Downlines</div>
+          <div class="secondary-stat-value" id="statLv3">0</div>
+        </div>
+        <div class="astra-card-secondary">
+          <div class="secondary-stat-label">Total Downlines</div>
+          <div class="secondary-stat-value" id="statLvTotal" style="color: var(--primary-green);">0</div>
+        </div>
+      </div>
+
       <!-- Downlines List -->
       <div class="astra-card">
         <h2 style="font-size: 1.15rem; color: var(--deep-forest); margin-bottom: 14px;">Referred Team Members</h2>
+        <div id="levelTabs" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;"></div>
         <div class="table-responsive" id="teamContainer">
           <p style="text-align: center; color: var(--secondary-text); padding: 30px;">Loading your affiliate network...</p>
         </div>
@@ -120,7 +141,6 @@
   <script type="module">
     import { initUserNavigation } from './shared/user-navigation.js';
     import { requireAuth, supabase } from './shared/supabase-client.js';
-    import { fetchUsernames } from './shared/usernames.js';
     import { formatCurrency, formatDate } from './shared/formatters.js';
 
     async function loadReferrals() {
@@ -167,15 +187,16 @@
       const totalComm = (comms || []).reduce((acc, c) => acc + Number(c.commission_amount), 0);
       document.getElementById('statTotalComm').textContent = formatCurrency(totalComm);
 
-      // 3. Fetch Direct Downlines
-      const { data: downlines } = await supabase
-        .from('referrals')
-        .select('referred_id, created_at')
-        .eq('referrer_id', userId)
-        .order('created_at', { ascending: false });
-
-      const totalRef = downlines ? downlines.length : 0;
-      document.getElementById('statTotalRef').textContent = totalRef;
+      // 3. Fetch team (levels 1-3)
+      const { data: team } = await supabase.rpc('get_my_downlines');
+      const members = team || [];
+      const counts = { 1: 0, 2: 0, 3: 0 };
+      members.forEach(m => { counts[m.level] = (counts[m.level] || 0) + 1; });
+      document.getElementById('statLv1').textContent = counts[1];
+      document.getElementById('statLv2').textContent = counts[2];
+      document.getElementById('statLv3').textContent = counts[3];
+      document.getElementById('statLvTotal').textContent = members.length;
+      document.getElementById('statTotalRef').textContent = counts[1];
 
       // 4. Fetch VIP status RPC for team deposits and active members
       const { data: vipStatus } = await supabase.rpc('get_user_referral_vip_status', { p_user_id: userId });
@@ -184,33 +205,51 @@
         document.getElementById('statTeamDep').textContent = formatCurrency(vipStatus.team_deposits || 0);
       }
 
-      // 5. Render Team Members Table
+      // 5. Level tabs + table
       const container = document.getElementById('teamContainer');
-      if (!downlines || downlines.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: var(--secondary-text); padding: 30px;">You have no registered downlines yet. Share your referral link to begin earning.</p>`;
-        return;
+      const tabsEl = document.getElementById('levelTabs');
+      let current = 'all';
+      const tabs = [['all', `All (${members.length})`], [1, `LV 1 (${counts[1]})`], [2, `LV 2 (${counts[2]})`], [3, `LV 3 (${counts[3]})`]];
+
+      function renderTabs() {
+        tabsEl.innerHTML = tabs.map(([k, label]) => `
+          <button type="button" data-lv="${k}" style="padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 0.8rem; cursor: pointer; border: 1px solid var(--primary-green); ${String(k) === String(current) ? 'background: var(--primary-green); color: #fff;' : 'background: transparent; color: var(--primary-green);'}">${label}</button>
+        `).join('');
       }
 
-      const usernames = await fetchUsernames(downlines.map(d => d.referred_id));
-      container.innerHTML = `
-        <table class="tx-table">
-          <thead>
-            <tr><th>Member</th><th>Joined</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            ${downlines.map(d => {
-              const name = usernames.get(d.referred_id) || 'Investor_' + d.referred_id.substring(0, 6);
-              return `
+      function renderTable() {
+        const rows = current === 'all' ? members : members.filter(m => m.level === Number(current));
+        if (rows.length === 0) {
+          container.innerHTML = `<p style="text-align: center; color: var(--secondary-text); padding: 30px;">${members.length === 0 ? 'You have no registered downlines yet. Share your referral link to begin earning.' : 'No members on this level yet.'}</p>`;
+          return;
+        }
+        container.innerHTML = `
+          <table class="tx-table">
+            <thead>
+              <tr><th>Member</th><th>Level</th><th>Joined</th><th>Deposits</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              ${rows.map(m => `
                 <tr>
-                  <td style="font-weight: 600;">@${name}</td>
-                  <td style="color: var(--secondary-text); font-size: 0.8rem;">${formatDate(d.created_at, { includeTime: false })}</td>
-                  <td><span class="badge-status badge-completed">Verified</span></td>
+                  <td style="font-weight: 600;">@${m.username || 'Investor_' + m.user_id.substring(0, 6)}</td>
+                  <td><span class="badge-status badge-pending">LV ${m.level}</span></td>
+                  <td style="color: var(--secondary-text); font-size: 0.8rem;">${formatDate(m.joined_at, { includeTime: false })}</td>
+                  <td style="font-weight: 700;">${formatCurrency(m.total_deposits || 0)}</td>
+                  <td><span class="badge-status ${m.is_active ? 'badge-completed' : 'badge-pending'}">${m.is_active ? 'Active' : 'Inactive'}</span></td>
                 </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      `;
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      tabsEl.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-lv]');
+        if (!b) return;
+        current = b.dataset.lv === 'all' ? 'all' : Number(b.dataset.lv);
+        renderTabs(); renderTable();
+      });
+      renderTabs(); renderTable();
     }
 
     loadReferrals();
