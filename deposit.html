@@ -157,7 +157,7 @@
 
     let channel = null;
     let manualCfg = {};
-    let gatewayOn = false;
+    const gatewayOn = true;
     const manualOn = () => !!manualCfg.is_enabled && !!manualCfg.account_number;
 
     function refreshChannels() {
@@ -234,7 +234,6 @@
     });
 
     async function loadManual() {
-      await watchSetting('payment_gateway', (cfg) => { gatewayOn = cfg?.mode === 'gateway'; refreshChannels(); });
       await watchSetting('manual_deposit_config', (cfg) => {
         manualCfg = cfg || {};
         refreshChannels();

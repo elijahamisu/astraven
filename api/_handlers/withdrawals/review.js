@@ -26,17 +26,13 @@ export default async function handler(req, res) {
     return res.status(200).json(data);
   }
 
-  const { mode } = await getPaymentMode(supabaseAdmin);
-
   if (action === 'paid') {
-    if (mode !== 'manual') return res.status(400).json({ success: false, error: 'Gateway mode is on. Use Send to Gateway, or switch to manual mode first.' });
     const { data, error } = await supabaseAdmin.rpc('admin_mark_withdrawal_paid', { p_withdrawal_id: withdrawalId, p_admin_id: user.id, p_reference: paymentReference || null });
     if (error || !data?.success) return res.status(400).json({ success: false, error: data?.error || error?.message });
     return res.status(200).json(data);
   }
 
   // approve -> send to gateway
-  if (mode !== 'gateway') return res.status(400).json({ success: false, error: 'Manual mode is on. Mark it paid after transferring, or switch to gateway mode.' });
 
   const { data: row } = await supabaseAdmin.from('withdrawals').select('bank_code, bank_name').eq('id', withdrawalId).maybeSingle();
   const bank = resolveMgmBank(row?.bank_code, row?.bank_name);

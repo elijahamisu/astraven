@@ -11,8 +11,8 @@ export default async function handler(req, res) {
   const user = await getUserFromRequest(req, supabaseAdmin);
   if (!user) return res.status(401).json({ success: false, error: 'Invalid session.' });
 
-  const { mode } = await getPaymentMode(supabaseAdmin);
-  if (mode !== 'gateway') return res.status(400).json({ success: false, error: 'Automatic deposits are switched off. Please use manual bank transfer.' });
+  const { data: depCfg } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'deposit_config').maybeSingle();
+  if (depCfg?.value?.is_enabled === false) return res.status(400).json({ success: false, error: 'Deposits are temporarily offline for maintenance.' });
 
   const amount = Math.round(Number((req.body || {}).amount) * 100) / 100;
   if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ success: false, error: 'Invalid deposit amount.' });

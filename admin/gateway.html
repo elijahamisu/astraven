@@ -39,14 +39,6 @@
 
         <div id="alertBanner" class="alert-banner"></div>
 
-        <div class="astra-card">
-          <h2 class="card-title">Payment Mode</h2>
-          <div class="mode-toggle">
-            <button class="mode-btn" data-mode="gateway">⚡ Gateway (automatic)</button>
-            <button class="mode-btn" data-mode="manual">🏦 Manual</button>
-          </div>
-          <small id="modeHelp" style="display: block; margin-top: 10px; color: var(--secondary-text); font-size: 0.8rem;"></small>
-        </div>
 
         <div class="bal-card">
           <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -124,10 +116,6 @@
     }
 
     function renderMode() {
-      document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === gwCfg.mode));
-      document.getElementById('modeHelp').textContent = gwCfg.mode === 'gateway'
-        ? 'Users pay through MGM Pay and are credited automatically. Withdrawals show "Send to Gateway" after you approve.'
-        : 'Users pay to your manual bank account and upload a receipt. You approve deposits and mark withdrawals paid yourself.';
       const pct = Number(gwCfg.admin_withdraw_fee_pct ?? 9.5);
       document.getElementById('feePctTxt').textContent = pct;
       if (document.activeElement?.id !== 'feePct') document.getElementById('feePct').value = pct;
@@ -140,12 +128,6 @@
       gwCfg = next; renderMode(); showAlert(okMsg, false);
     }
 
-    document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', () => {
-      const mode = b.dataset.mode;
-      if (mode === gwCfg.mode) return;
-      if (!confirm(mode === 'gateway' ? 'Switch to automatic gateway payments?' : 'Switch to manual payments? Users will see the manual bank account instead of the gateway.')) return;
-      saveCfg({ ...gwCfg, mode }, `Switched to ${mode} mode.`);
-    }));
 
     document.getElementById('saveFee').addEventListener('click', () => {
       const pct = Number(document.getElementById('feePct').value);
