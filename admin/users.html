@@ -21,7 +21,7 @@
       </div>
 
       <div class="search-filter-bar">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search by username, full name, or referral code...">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by username, name, phone, or referral code...">
       </div>
 
       <div class="astra-card" style="padding: 0; overflow: hidden;">
@@ -43,30 +43,43 @@
       const auth = await initAdminNavigation();
       if (!auth) return;
 
-      const { data: users, error } = await supabase
-        .from('profiles')
-        .select(`id, username, full_name, phone, referral_code, is_suspended, created_at`)
-        .order('created_at', { ascending: false })
-        .limit(100);
-
       const container = document.getElementById('usersContainer');
-      if (error || !users || users.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: var(--secondary-text); padding: 40px;">No registered accounts found.</p>`;
-        return;
+      const input = document.getElementById('searchInput');
+      let timer = null, seq = 0;
+
+      async function fetchUsers(q) {
+        const mySeq = ++seq;
+        let query = supabase
+          .from('profiles')
+          .select(`id, username, full_name, phone, referral_code, is_suspended, created_at`)
+          .order('created_at', { ascending: false });
+        const term = (q || '').trim().replace(/^@+/, '').replace(/[,()*%\\]/g, ' ').trim();
+        if (term) {
+          const like = `%${term}%`;
+          query = query.or(`username.ilike.${like},full_name.ilike.${like},phone.ilike.${like},referral_code.ilike.${like}`).limit(200);
+        } else {
+          query = query.limit(100);
+        }
+        const { data: users, error } = await query;
+        if (mySeq !== seq) return; // a newer search finished first
+        if (error) {
+          container.innerHTML = `<p style="text-align: center; color: #B91C1C; padding: 40px;">Could not load users: ${error.message}</p>`;
+          return;
+        }
+        if (!users || users.length === 0) {
+          container.innerHTML = `<p style="text-align: center; color: var(--secondary-text); padding: 40px;">${term ? 'No user matches "' + term.replace(/</g,'&lt;') + '".' : 'No registered accounts found.'}</p>`;
+          return;
+        }
+        allUsers = users;
+        render(allUsers);
       }
 
-      allUsers = users;
-      render(allUsers);
-
-      document.getElementById('searchInput').addEventListener('input', (e) => {
-        const q = e.target.value.toLowerCase().trim();
-        const filtered = allUsers.filter(u => 
-          (u.username && u.username.toLowerCase().includes(q)) ||
-          (u.full_name && u.full_name.toLowerCase().includes(q)) ||
-          (u.referral_code && u.referral_code.toLowerCase().includes(q))
-        );
-        render(filtered);
+      input.addEventListener('input', (e) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fetchUsers(e.target.value), 300);
       });
+
+      await fetchUsers('');
     }
 
     function render(list) {
